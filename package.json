@@ -1,0 +1,14 @@
+{
+  "name": "module2-exercises",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "uuid": "^8.1.0"
+  }
+}
