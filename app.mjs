@@ -80,5 +80,4 @@ class SingleContact {
     }
 }   
 
-const contact = new SingleContact({name: 'Zbych', surname: 'Nowak', email: 'asdasd@wp.pl'})
-console.log(contact);
+const contact = new SingleContact({name: 'Zbych', surname: 'Nowak', email: 'asdasd@wp.pl'});
