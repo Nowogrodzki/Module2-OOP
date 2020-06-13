@@ -10,6 +10,11 @@ const checkContactParameters = (name, surname, email) => {
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('something went wrong with email, please check your email address')
 }
 
+const dateOfCreate = () => {
+    const now = new Date();
+    return `contact has been created - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+}
+
 class AddressBook {
     constructor() {
         this.allContacts = [];
@@ -57,6 +62,7 @@ class SingleContact {
         this.surname = contactData.surname;
         this.email = contactData.email;
         this.id = uuidv4();
+        this.date = dateOfCreate();
     }
 
     update(key, dataToUpade) {
@@ -74,3 +80,5 @@ class SingleContact {
     }
 }   
 
+const contact = new SingleContact({name: 'Zbych', surname: 'Nowak', email: 'asdasd@wp.pl'})
+console.log(contact);
