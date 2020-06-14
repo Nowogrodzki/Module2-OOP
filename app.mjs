@@ -34,19 +34,28 @@ class AddressBook {
         }
     }
     
-    readList () {
+    readContactList () {
         return console.log(this.allContacts);
     }
 
     updateById(id, key, dataToUpade) {
         if(key === 'id') throw new Error('id cannot be updated')
-        const contact = this.allContacts.find(item => item.id === id);
+        const contact = this.allContacts.find(item => item.name === id);
         return contact.update(key, dataToUpade);
     }
 
     deleteById(id) {
         const index = this.allContacts.findIndex(item => item.id === id);   
         this.allContacts.splice(index, 1);
+    }
+
+    sortByValue(valueToFind) {
+        return this.allContacts.filter(item => {
+            const values = Object.values(item)
+            for(const value of values) {
+                if(value.toLowerCase().includes(valueToFind.toLowerCase())) return item
+            }
+        })
     }
 }
 
@@ -83,3 +92,6 @@ class SingleContact {
 }   
 
 const contact = new SingleContact({name: 'Zbych', surname: 'Nowak', email: 'asdasd@wp.pl'});
+const contact1 = new SingleContact({name: 'Zby', surname: 'Kowalskik', email: 'kowal.ski@wp.pl'});
+const book = new AddressBook();
+
