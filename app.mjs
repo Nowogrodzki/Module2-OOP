@@ -51,6 +51,7 @@ class AddressBook {
 }
 
 class SingleContact {
+    #date = dateOfCreate();
     constructor(contactData) {
         if(!contactData.name || !contactData.surname || !contactData.email) {
             throw new Error('Data is missing one of the properties: name, surname, email');
@@ -62,7 +63,7 @@ class SingleContact {
         this.surname = contactData.surname;
         this.email = contactData.email;
         this.id = uuidv4();
-        this.date = dateOfCreate();
+        this.date = this.#date;
     }
 
     update(key, dataToUpade) {
@@ -72,6 +73,7 @@ class SingleContact {
             if(element.toLowerCase() === key.toLowerCase()) {
                 this[element] = dataToUpade;
             }
+            this.#date = dateOfCreate();
         }
     }
 
