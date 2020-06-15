@@ -26,11 +26,11 @@ class AddressBook {
     }
           
     add(contact) {
-        if(contact instanceof SingleContact) {
-            // console.log(`New phone number has been added with ID - ${contact.id}`, contact);
-            return this.allContacts.push(contact);
+        if(!(contact instanceof SingleContact)) {
+            throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
         } else {
-            throw new Error('please enter correct argument');
+            console.log(`New phone number has been added with ID - ${contact.id}`, contact);
+            return this.allContacts.push(contact);
         }
     }
     
@@ -39,7 +39,7 @@ class AddressBook {
     }
 
     updateById(id, key, dataToUpade) {
-        if(key === 'id') throw new Error('id cannot be updated')
+        if(key === 'id' || key === 'date') throw new Error('id and date cannot be updated')
         const contact = this.allContacts.find(item => item.name === id);
         return contact.update(key, dataToUpade);
     }
@@ -78,7 +78,7 @@ class SingleContact {
     update(key, dataToUpade) {
         for(const element in this) {
             checkContactParameters(this.name, this.surname, this.email)
-            if(key === 'id') throw new Error('Id cannot be updated!')
+            if(key === 'id' || key === 'date') throw new Error('Id and date cannot be updated!')
             if(element.toLowerCase() === key.toLowerCase()) {
                 this[element] = dataToUpade;
             }
@@ -89,7 +89,39 @@ class SingleContact {
     read() {
         return console.log(this);
     }
-}   
+}
+
+class ContactGrupe {
+    constructor() {
+        this.contactsGroup = [];
+    }
+
+    create(name, surname, email) {
+        return SingleContact({name, surname, email})
+    }
+
+    add(contact) {
+        if(!(contact instanceof SingleContact)) {
+            throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
+        } else {
+            console.log(`New phone number has been added with ID - ${contact.id}`, contact);
+            return this.allContacts.push(contact);
+        }
+    }
+
+    read () {
+        console.log(this.contactsGroup);
+    }
+
+    update () {
+
+    }
+
+    deleteById(id) {
+        const index = this.contactsGroup.findIndex(item => item.id === id);   
+        this.contactsGroup.splice(index, 1);
+    }
+}
 
 const contact = new SingleContact({name: 'Zbych', surname: 'Nowak', email: 'asdasd@wp.pl'});
 const contact1 = new SingleContact({name: 'Zby', surname: 'Kowalskik', email: 'kowal.ski@wp.pl'});
