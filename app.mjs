@@ -189,7 +189,7 @@ class ContactGroup {
     }
 
 
-    add(contact) {
+    addContactToGroup(contact) {
         if(!(contact instanceof SingleContact)) {
 
             throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
@@ -203,15 +203,15 @@ class ContactGroup {
         }
     }
 
-    read () {
+    readGroupMembers () {
         console.log(this.contactsGroup);
     }
 
-    update (name) {
+    updateGroupName (name) {
         this.name = name
     }
 
-    deleteById(idToDelete) {
+    deleteGroupById(idToDelete) {
         const index = this.contactsGroup.findIndex(({id}) => id === idToDelete);   
         this.contactsGroup.splice(index, 1);
     }
@@ -221,4 +221,3 @@ const contact1 = new SingleContact({name: 'Tomasz', surname: 'Kowalski', email: 
 const contact2 = new SingleContact({name: 'Jan', surname: 'Nowak', email: 'jan.nowak@onet.pl'});
 const book = new AddressBook();
 const group = new ContactGroup('Lisy');
-
