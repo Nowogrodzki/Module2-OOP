@@ -23,54 +23,85 @@ class AddressBook {
     createNewContact(name, surname, email) {
         return new SingleContact({name,surname,email})
     }
+
+    addGroup(group) {
+
+        if(!(group instanceof ContactGroup)) {
+            throw new Error('Given argument is not instance of ContactGroup class, please enter correct argument');
+        }
+
+        this.listOfContactGrupe.push(group);
+
+        return this.listOfContactGrupe;
+
+    }
           
-    // addContactToGroup(contact, groupName)
     addContactToGroup(contact, groupName) {
+        
         if(!(contact instanceof SingleContact)) {
             throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
-        } else if(!(groupName instanceof ContactGroup)) {
-            throw new Error('Given argument is not instace of ContactGroup class, please enter correct argument');
-        } else {
-            groupName.push(contact)
-            return groupName;
+        } 
+        
+        if(typeof groupName !== 'string') {
+            throw new Error('Invalid type of argument, please enter correct argument');
         }
+        
+        const index = this.listOfContactGrupe.findIndex(item => item.name.toLowerCase() === groupName.toLowerCase());
+
+        this.listOfContactGrupe[index].contactsGroup.push(contact);
+        
+        return this.listOfContactGrupe;
     }
 
     addContact(contact) {
+
         if(!(contact instanceof SingleContact)) {
+            
             throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
+
         } else {
-            // console.log(`New phone number has been added with ID - ${contact.id}`, contact);
+
             this.allContacts.push(contact);
+
             return this.allContacts;
         }
     }
     
     readContactList () {
-        console.log(this.allContacts);
+        // console.log(this.allContacts);
+        console.log(this.listOfContactGrupe);
     }
 
     updateContactById(contactId, key, dataToUpdate) {
+
         const contact = this.allContacts.find(item => item.id === contactId);
+
         return contact.update(key, dataToUpdate)
     }
 
     deleteContactById(id) {
-        const index = this.allContacts.findIndex(item => item.id === id);   
+
+        const index = this.allContacts.findIndex(item => item.id === id);
+
         this.allContacts.splice(index, 1);
     }
 
-    findByValue(valueToFind) {
-        if(typeof valueToFind !== 'string' || !valueToFind.length) throw new Error('introduced value is incorrect')
+    findByPhrase(phrase) {
+        if(typeof phrase !== 'string' || !phrase.length) throw new Error('introduced value is incorrect')
+
         const sorted = this.allContacts.filter(item => {
+
             const values = Object.values(item)
-            for(const value of values) {
-                if(value.toLowerCase().includes(valueToFind.toLowerCase())) {
-                    return true
-                }
+
+            function isPhaseInValue(value){
+                return value.toLowerCase().includes(phrase.toLowerCase())
             }
-            return false
-        }).sort((a,b) => {
+
+            const itemContainsPhase = values.map(isPhaseInValue).some(el => el)
+            
+            return itemContainsPhase
+        })
+        .sort((a,b) => {
             return a.surname - b.surname
         })
         return sorted
@@ -80,6 +111,7 @@ class AddressBook {
 
 class SingleContact {
     constructor(contactData) {
+
         this.validateKeys(contactData)
         checkContactParameters(contactData);
 
@@ -100,37 +132,44 @@ class SingleContact {
     }
 
     validateValueForKey(key, value){
-        if(key === 'name') {
-            if(typeof value === 'string' && value.length > 3) {
-                return true
-            }
+
+        let isValid = false
+
+        switch(true){
+            case Object.keys(this).includes(key) && typeof value === 'string' && value.length > 3:
+                isValid = true
+                break
+            
+                // regexp email google
+            case key === 'email' && typeof value === 'string' && value.length > 3 && value.includes('@'):
+                isValid = true
+                break
+
+            default:
+                break;
         }
-        if(key === 'surname') {
-            if(typeof value === 'string' && value.length > 3) {
-                return true
-            }
-        }
-        if(key === 'email') {
-            if(typeof value === 'string' && value.length > 3) {
-                return true
-            }
-        }
+        return isValid
     }
 
 
     update(key, value) { 
-        if(key === 'id' || key === 'date') throw new Error('Id and date cannot be updated!')
-        if(Object.keys(this).includes(key.toLowerCase())){
-            if(this.validateValueForKey(key.toLowerCase(), value)){
-                this[key.toLowerCase()] = value
-                this.date = initializeCreationDate();
-            }
-            else {
-                throw new Error('invalid value, please enter correct value')
-            }
-        }else {
+        const _key = key.toLowerCase()
+        if(_key === 'id' || _key === 'date') throw new Error('Id and date cannot be updated!')
+
+        const isKeyInContact = Object.keys(this).includes(_key)
+
+        if(!isKeyInContact){
             throw new Error('Invalid Key, please enter correct key')
         }
+
+        if(!this.validateValueForKey(_key, value)){
+            throw new Error('invalid value, please enter correct value')
+        }
+
+        this[_key] = value
+        this.date = initializeCreationDate();
+
+        return this
     }
 
     read() {
@@ -140,13 +179,21 @@ class SingleContact {
 
 class ContactGroup {
     constructor(name) {
+
+        if(typeof name !== 'string' || name.length < 3) {
+            throw new Error('Group name must be string with length higher then 2');
+        }
+
         this.name = name
         this.contactsGroup = []
     }
 
+
     add(contact) {
         if(!(contact instanceof SingleContact)) {
+
             throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
+
         } else {
             console.log(`New phone number has been added with ID - ${contact.id}`, contact);
 
@@ -170,8 +217,8 @@ class ContactGroup {
     }
 }
 
-const contact2 = new SingleContact({name: 'Zeszyk9', surname: 'Elton', email: 'kowal.ski@wp.pl'});
-const contact = new SingleContact({name: 'Zbyszyk2', surname: 'Amadeusz', email: 'asdasd@wp.pl'});
-const contact3 = new SingleContact({name: 'Zmszyk6', surname: 'Malik', email: 'kowal.ski@wp.pl'});
-const contact1 = new SingleContact({name: 'Zaszyk3', surname: 'Bocian', email: 'kowal.ski@wp.pl'});
+const contact1 = new SingleContact({name: 'Tomasz', surname: 'Kowalski', email: 'kowalski.tomasz@wp.pl'});
+const contact2 = new SingleContact({name: 'Jan', surname: 'Nowak', email: 'jan.nowak@onet.pl'});
 const book = new AddressBook();
+const group = new ContactGroup('Lisy');
+
