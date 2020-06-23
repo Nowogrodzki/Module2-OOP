@@ -32,8 +32,6 @@ class AddressBook {
 
         this.listOfContactGrupe.push(group);
 
-        return this.listOfContactGrupe;
-
     }
           
     addContactToGroup(contact, groupName) {
@@ -50,7 +48,6 @@ class AddressBook {
 
         this.listOfContactGrupe[index].contactsGroup.push(contact);
         
-        return this.listOfContactGrupe;
     }
 
     addContact(contact) {
@@ -140,8 +137,7 @@ class SingleContact {
                 isValid = true
                 break
             
-                // regexp email google
-            case key === 'email' && typeof value === 'string' && value.length > 3 && value.includes('@'):
+            case key === 'email' && typeof value === 'string' && value.length > 3 && /(.+)@(.+){2,}\.(.+){2,}/.test(value):
                 isValid = true
                 break
 
@@ -185,35 +181,34 @@ class ContactGroup {
         }
 
         this.name = name
-        this.contactsGroup = []
+        this.contacts = []
     }
 
 
-    addContactToGroup(contact) {
+    addContact(contact) {
         if(!(contact instanceof SingleContact)) {
-
             throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
 
         } else {
             console.log(`New phone number has been added with ID - ${contact.id}`, contact);
 
-            this.contactsGroup.push(contact)
+            this.contacts.push(contact)
 
-            return this.contactsGroup
+            return this.contacts
         }
     }
 
-    readGroupMembers () {
-        console.log(this.contactsGroup);
+    readContacts () {
+        console.log(this.contacts);
     }
 
     updateGroupName (name) {
         this.name = name
     }
 
-    deleteGroupById(idToDelete) {
-        const index = this.contactsGroup.findIndex(({id}) => id === idToDelete);   
-        this.contactsGroup.splice(index, 1);
+    deleteContactById(idToDelete) {
+        const index = this.contacts.findIndex(({id}) => id === idToDelete);   
+        this.contacts.splice(index, 1);
     }
 }
 
