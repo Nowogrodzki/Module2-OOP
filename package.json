@@ -1,14 +1,17 @@
 {
   "name": "module2-exercises",
   "version": "1.0.0",
-  "description": "",
+  "description": "Project",
   "main": "app.js",
   "scripts": {
-    "test": "node app.js"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "uuid": "^8.1.0"
+  },
+  "devDependencies": {
+    "jest": "^26.1.0"
   }
 }

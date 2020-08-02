@@ -1,4 +1,4 @@
-import {v4 as uuidv4} from 'uuid';
+// import {v4 as uuidv4} from 'uuid';
 
 const checkContactParameters = (contactData) => {
     if(typeof contactData.name !== 'string') throw new Error('name must be a string')
@@ -46,8 +46,15 @@ class AddressBook {
         
         const index = this.listOfContactGrupe.findIndex(item => item.name.toLowerCase() === groupName.toLowerCase());
 
-        this.listOfContactGrupe[index].contactsGroup.push(contact);
-        
+        if(index === -1) {
+
+            throw new Error('This ContactGroupe dosent exist')
+            
+        } else {
+
+            this.listOfContactGrupe[index].contacts.push(contact);
+
+        }
     }
 
     addContact(contact) {
@@ -65,7 +72,6 @@ class AddressBook {
     }
     
     readContactList () {
-        // console.log(this.allContacts);
         console.log(this.listOfContactGrupe);
     }
 
@@ -73,14 +79,22 @@ class AddressBook {
 
         const contact = this.allContacts.find(item => item.id === contactId);
 
-        return contact.update(key, dataToUpdate)
+        if(contact === undefined) {
+            throw new Error('There is no contact based on passed id')
+        } else {
+            return contact.update(key,dataToUpdate)
+        }
     }
 
     deleteContactById(id) {
 
         const index = this.allContacts.findIndex(item => item.id === id);
 
-        this.allContacts.splice(index, 1);
+        if(index === -1) {
+            throw new Error(`Nothing to delete based on ${id}`)
+        } else {
+            this.allContacts.splice(index, 1);
+        }
     }
 
     findByPhrase(phrase) {
@@ -95,8 +109,12 @@ class AddressBook {
             }
 
             const itemContainsPhase = values.map(isPhaseInValue).some(el => el)
-            
-            return itemContainsPhase
+
+            if(!itemContainsPhase) {
+                throw new Error(`No results based on phrase ${phrase}`)
+            } else {
+                return itemContainsPhase
+            }
         })
         .sort((a,b) => {
             return a.surname - b.surname
@@ -115,12 +133,14 @@ class SingleContact {
         this.name = contactData.name;
         this.surname = contactData.surname;
         this.email = contactData.email;
-        this.id = uuidv4();
+        this.id = 'ss';
         this.date = initializeCreationDate();
     }
 
 
-    validateKeys(contactData){
+    validateKeys(contactData={}){
+        if(typeof contactData !== 'object' && !Array.isArray(contactData)) throw new Error('Argument must be an object with properties - name, surname, email')
+
         if(!contactData.name || !contactData.surname || !contactData.email) {
             throw new Error('Data is missing one of the properties: name, surname, email');
         } else {
@@ -190,11 +210,9 @@ class ContactGroup {
             throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
 
         } else {
-            console.log(`New phone number has been added with ID - ${contact.id}`, contact);
+            console.log(`New contact has been added`);
 
             this.contacts.push(contact)
-
-            return this.contacts
         }
     }
 
@@ -216,3 +234,11 @@ const contact1 = new SingleContact({name: 'Tomasz', surname: 'Kowalski', email: 
 const contact2 = new SingleContact({name: 'Jan', surname: 'Nowak', email: 'jan.nowak@onet.pl'});
 const book = new AddressBook();
 const group = new ContactGroup('Lisy');
+
+module.exports = {
+    SingleContact,
+    ContactGroup,
+    AddressBook,
+    initializeCreationDate,
+    checkContactParameters
+}
