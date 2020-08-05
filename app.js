@@ -1,104 +1,98 @@
 // import {v4 as uuidv4} from 'uuid';
-
-const checkContactParameters = (contactData) => {
-    if(typeof contactData.name !== 'string') throw new Error('name must be a string')
-    if(contactData.name.length < 3) throw new Error('Name must be greater then 2')
-
-    if(typeof contactData.surname !== 'string') throw new Error('Surname must be a string')
-    if(contactData.surname.length < 3) throw new Error('Surname must be greater then 2')
-
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactData.email)) throw new Error('something went wrong with email, please check your email address')
-}
-
-const initializeCreationDate = () => {
-    const now = new Date();
-    return `${now.getDate()}.${now.getMonth()+1}.${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
-}
+const { Validator, checkContactParameters, initializeCreationDate, isUnique, validOrThrow } = require('./utility');
 
 class AddressBook {
 
     allContacts = [];
-    listOfContactGrupe = [];
+    listOfContactGroup = [];
 
     createNewContact(name, surname, email) {
         return new SingleContact({name,surname,email})
     }
 
     addGroup(group) {
+        validOrThrow(!Validator.isType(group, ContactGroup), 'Method only argument is instance of ContactGroup')
 
-        if(!(group instanceof ContactGroup)) {
-            throw new Error('Given argument is not instance of ContactGroup class, please enter correct argument');
-        }
-
-        this.listOfContactGrupe.push(group);
-
+        this.listOfContactGroup.push(group);
     }
           
-    addContactToGroup(contact, groupName) {
+    addContactToGroup(groupName, contact ) {
+        validOrThrow(!Validator.isType(contact, SingleContact), 'Method only argument is instance of SingleContact')
+        validOrThrow(!Validator.isString(groupName), 'grupeName must be a string')
+
+        const index = this.listOfContactGroup.findIndex(item => item.name.toLowerCase() === groupName.toLowerCase());
+
+        validOrThrow(index === -1, 'This ContactGroup dosent exist')
+
+        const duplicatesInGroup = this.listOfContactGroup[index].contacts.find(({id}) => id === contact.id)
+
+        validOrThrow(duplicatesInGroup !== undefined, 'This contact is already in group')
         
-        if(!(contact instanceof SingleContact)) {
-            throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
-        } 
+        this.listOfContactGroup[index].contacts.push(contact);
+    }
+
+    addContactsToGroup(groupName, ...contacts) {
+        validOrThrow(!Validator.isElementsSameType(contacts, SingleContact), 'Method only argument is instace of SingleContact')
+        validOrThrow(!Validator.isString(groupName), 'grupeName must be a string')
+        validOrThrow(!isUnique(contacts), 'You cant add two the same numbers')
+
+        const index = this.listOfContactGroup.findIndex(item => item.name.toLowerCase() === groupName.toLowerCase());
+
+        const duplicatesInGroup = this.listOfContactGroup[index].contacts.some(contact => contacts.indexOf(contact) !== -1)
+
+        validOrThrow(duplicatesInGroup, 'This contact is already in group')
+
+        this.listOfContactGroup[index].contacts.push(...contacts)
+    }
+
+    addContacts(...contacts) {
+        validOrThrow(!Validator.isElementsSameType(contacts, SingleContact), 'Method only argument is instace of SingleContact')
+        validOrThrow(!isUnique(contacts), 'You cant add two the same numbers')
         
-        if(typeof groupName !== 'string') {
-            throw new Error('Invalid type of argument, please enter correct argument');
-        }
-        
-        const index = this.listOfContactGrupe.findIndex(item => item.name.toLowerCase() === groupName.toLowerCase());
+        const duplicatesInContacts = this.allContacts.some(contact => contacts.indexOf(contact) !== -1)
 
-        if(index === -1) {
+        validOrThrow(duplicatesInContacts, 'This contact is already in list')
 
-            throw new Error('This ContactGroupe dosent exist')
-            
-        } else {
+        this.allContacts.push(...contacts)
 
-            this.listOfContactGrupe[index].contacts.push(contact);
-
-        }
+        console.log(`${contacts.length} new contacts has been added`);
     }
 
     addContact(contact) {
+        validOrThrow(!Validator.isType(contact, SingleContact), 'Given argument is not instace of SingleContact class, please enter correct argument')
 
-        if(!(contact instanceof SingleContact)) {
-            
-            throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
+        const duplicatesInContacts = this.allContacts.find(({id}) => id === contact.id)
 
-        } else {
+        validOrThrow(duplicatesInContacts !== undefined, 'This contact is already in list')
 
-            this.allContacts.push(contact);
-
-            return this.allContacts;
-        }
+        this.allContacts.push(contact);
+        console.log(`New contact has been added`);
     }
     
     readContactList () {
-        console.log(this.listOfContactGrupe);
+        console.log(this.allContacts);
     }
 
     updateContactById(contactId, key, dataToUpdate) {
 
-        const contact = this.allContacts.find(item => item.id === contactId);
+        const contact = this.allContacts.find(({id})=> id === contactId);
 
-        if(contact === undefined) {
-            throw new Error('There is no contact based on passed id')
-        } else {
-            return contact.update(key,dataToUpdate)
-        }
+        validOrThrow(contact === undefined, 'There is no contact based on passed id')
+
+        return contact.update(key,dataToUpdate)
     }
 
-    deleteContactById(id) {
+    deleteContactById(idToDelete) {
 
-        const index = this.allContacts.findIndex(item => item.id === id);
+        const index = this.allContacts.findIndex(({id}) => id === idToDelete);
 
-        if(index === -1) {
-            throw new Error(`Nothing to delete based on ${id}`)
-        } else {
-            this.allContacts.splice(index, 1);
-        }
+        validOrThrow(index === -1, `Nothing to delete based on ID`)
+
+        this.allContacts.splice(index, 1);
     }
 
     findByPhrase(phrase) {
-        if(typeof phrase !== 'string' || !phrase.length) throw new Error('introduced value is incorrect')
+        if(!Validator.isString(phrase) || !phrase.length) throw new Error('Phrase must be a string and cannot be empty')
 
         const sorted = this.allContacts.filter(item => {
 
@@ -110,11 +104,7 @@ class AddressBook {
 
             const itemContainsPhase = values.map(isPhaseInValue).some(el => el)
 
-            if(!itemContainsPhase) {
-                throw new Error(`No results based on phrase ${phrase}`)
-            } else {
-                return itemContainsPhase
-            }
+            return itemContainsPhase
         })
         .sort((a,b) => {
             return a.surname - b.surname
@@ -133,31 +123,27 @@ class SingleContact {
         this.name = contactData.name;
         this.surname = contactData.surname;
         this.email = contactData.email;
-        this.id = 'ss';
+        this.id = 'contac';
         this.date = initializeCreationDate();
     }
 
 
     validateKeys(contactData={}){
-        if(typeof contactData !== 'object' && !Array.isArray(contactData)) throw new Error('Argument must be an object with properties - name, surname, email')
+        validOrThrow(typeof contactData !== 'object' && !Array.isArray(contactData), 'Argument must be an object with properties - name, surname, email')
+        validOrThrow(!contactData.name || !contactData.surname || !contactData.email, 'Data is missing one of the properties: name, surname, email')
 
-        if(!contactData.name || !contactData.surname || !contactData.email) {
-            throw new Error('Data is missing one of the properties: name, surname, email');
-        } else {
-            return true
-        }
+        return true
     }
 
     validateValueForKey(key, value){
-
         let isValid = false
 
         switch(true){
-            case Object.keys(this).includes(key) && typeof value === 'string' && value.length > 3:
+            case Object.keys(this).includes(key) && Validator.isString(value) && Validator.isLengthGreater(value):
                 isValid = true
                 break
             
-            case key === 'email' && typeof value === 'string' && value.length > 3 && /(.+)@(.+){2,}\.(.+){2,}/.test(value):
+            case key === 'email' && Validator.isString(value) && Validator.isLengthGreater(value) && Validator.isValidEmail(value):
                 isValid = true
                 break
 
@@ -170,16 +156,15 @@ class SingleContact {
 
     update(key, value) { 
         const _key = key.toLowerCase()
-        if(_key === 'id' || _key === 'date') throw new Error('Id and date cannot be updated!')
+
+        validOrThrow(_key === 'id' || _key === 'date', 'Id and date cannot be updated!')
 
         const isKeyInContact = Object.keys(this).includes(_key)
 
-        if(!isKeyInContact){
-            throw new Error('Invalid Key, please enter correct key')
-        }
+        validOrThrow(!isKeyInContact, 'Invalid Key, there is no key like that')
 
         if(!this.validateValueForKey(_key, value)){
-            throw new Error('invalid value, please enter correct value')
+            throw new Error('invalid value, right value is not empty string')
         }
 
         this[_key] = value
@@ -195,10 +180,7 @@ class SingleContact {
 
 class ContactGroup {
     constructor(name) {
-
-        if(typeof name !== 'string' || name.length < 3) {
-            throw new Error('Group name must be string with length higher then 2');
-        }
+        validOrThrow(!Validator.isString(name) || name.length < 3, 'Group name must be a string with length higher then 2')
 
         this.name = name
         this.contacts = []
@@ -206,22 +188,19 @@ class ContactGroup {
 
 
     addContact(contact) {
-        if(!(contact instanceof SingleContact)) {
-            throw new Error('Given argument is not instace of SingleContact class, please enter correct argument');
+        validOrThrow(!Validator.isType(contact, SingleContact), 'Method only argument is instance of SingleContact')
 
-        } else {
-            console.log(`New contact has been added`);
-
-            this.contacts.push(contact)
-        }
+        this.contacts.push(contact)
+        console.log(`New contact has been added`);
     }
 
     readContacts () {
         console.log(this.contacts);
     }
 
-    updateGroupName (name) {
-        this.name = name
+    updateGroupName (nameToChange) {
+        validOrThrow(!Validator.isString(nameToChange) || nameToChange.length < 3, 'Name to change must be a string with length higher then 2')
+        this.name = nameToChange
     }
 
     deleteContactById(idToDelete) {
@@ -238,7 +217,5 @@ const group = new ContactGroup('Lisy');
 module.exports = {
     SingleContact,
     ContactGroup,
-    AddressBook,
-    initializeCreationDate,
-    checkContactParameters
+    AddressBook
 }

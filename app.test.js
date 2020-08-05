@@ -1,139 +1,122 @@
-const { SingleContact, AddressBook, ContactGroup, checkContactParameters, initializeCreationDate } = require('./app');
+const { SingleContact, AddressBook, ContactGroup } = require('./app');
 
+describe('Użytkownik chce dodać kilka kontaktów do książki adresowej', () => {
+    const x = new SingleContact({name: 'Tomasz', surname: 'Kowalski', email: 'kowalski.tomasz@wp.pl'})
+    const y = new SingleContact({name: 'Jan', surname: 'Nowak', email: 'jan.nowak@onet.pl'})
+    const z = new SingleContact({name: 'Jurek', surname: 'Kowal', email: 'jurek.kowal@interia.pl'})
+    const book = new AddressBook();
+    const group = new ContactGroup('rodzina')
+    test('Tworzy kontakt X, Y, Z', () => {
+        expect(x).toBeInstanceOf(SingleContact);
+        expect(y).toBeInstanceOf(SingleContact);
+        expect(z).toBeInstanceOf(SingleContact);
+    })
 
-// jak ma działać aplikacja ?
-// użytkownik chce usunąć poszczególne kontakty z grupy / z ksiażki
-// użytkownik chciałby zmodyfikować kontakt / grupę
+    test('Dodaje do książki kontakt x, y, z', () => {
+        book.addContacts(x,y,z)
+        expect(book.allContacts).toHaveLength(3)
+    })
 
-
-// "use case"
-
-// describe -> użytkownik chce dodać kilka kontaktów do ksiązki adresowej 
-// tworzę kontakt X, Y, Z 
-// dodaję do książki kontakt X, Y, Z
-// -> sprawdzam ilość czy jest 3
-// szukam Z
-// -> sprawdzam czy jest Z
-
-
-// describe -> użytkownik chce utworzyć z nich grupę "rodzina"
-// przez addressbook dodaję grupę rodzina
-// przez adresbook dodaję contact X, Y, Z do grupy rodzina
-// -> sprawdzam czy ilość w grupie to 3
-
-
-
-describe('Logika aplikacji działą poprawnie gdy', () => {
-    describe('Klasa AddressBook', () => {
-        const book = new AddressBook()
-        const single1 = new SingleContact({name: "Jan", surname: 'Kowalski', email: 'kowalski@gmail.com'});
-        const grupa = new ContactGroup('Kowalscy')
-    
-        test('Tworzy kontakt z poziomu AddressBook poprzez zwracanie instancji klasy SingleContact', () => {
-            const contactCreatedByAddressBook = book.createNewContact('Roman', 'Kowal', 'roman.kowal@gmail.com')
-            expect(typeof contactCreatedByAddressBook).toBe('object')
-            expect(contactCreatedByAddressBook).toBeInstanceOf(SingleContact)
-        })
-    
-        test('Dodaje kontakt który jest instacja klasy SingleContact do ksiażki telefonicznej poprzez metode Add', () => {
-            book.addContact(single1)
-            expect(book.allContacts).toHaveLength(1)
-            expect(book.allContacts[0]).toBeInstanceOf(SingleContact)
-            expect(book.allContacts[0]).toBe(single1)
-        })
-    
-        test('Dodaje grupe kontaktów pochodzących z instancji ContactsGroup poprzez metode addGroup', () => {
-            book.addGroup(grupa);
-            expect(book.listOfContactGrupe[0]).toBe(grupa)
-        })
-    
-        test('Dodaje kontakt do grupy kontaktów poprzez metode addContactToGroup', () => {
-            book.addContactToGroup(single1, 'Kowalscy')
-            expect(book.listOfContactGrupe[0].contacts[0]).toBe(single1)
-        })
-    
-        test('Zmienia dane kontaktu z poziomu AddressBook za pomoca metody updateContactById, która przyjmuje id kontaktu który chcemy updatować, klucz w którym ma zostać zmieniona wartość i wartość do podmiany.', () => {
-            book.updateContactById('ss', 'name', 'Tomasz')
-            expect(single1.name).toBe('Tomasz')
-        })
-    
-        test('Wyszykuje i sortując obiekty znajdujące się w tablicy allContacts za pomoca metody "findByPhrase" która przyjmuje jako argument fraze(string)', () => {
-            expect(book.findByPhrase('tomasz')).toStrictEqual([single1])
-        })
-    
-        test('Usuwa elementy z tablicy allContacts za pomocą metody deleteContactById, która przyjmuje id jako argument po którym jest szukany kontakt do usunięcia', () => {
-            book.deleteContactById('ss')
-            expect(book.allContacts).toHaveLength(0);
-        })
-        
+    test('Szuka w tablicy kontaktu "z" ', () => {
+        expect(book.findByPhrase('Tomasz')).toStrictEqual([book.allContacts[0]])
     })
     
-    describe('Klasa SingleContact', () => {
-        const single = new SingleContact({name: "juras", surname: 'ogóras', email: 'juras@asd.com'});
-    
-        test('Zwraca kontakt, który posiada imie, nazwisko, email, id oraz date utworzenia kontaktu', () => {
-            expect(single).toHaveProperty('name')
-            expect(typeof single.name).toBe('string')
-    
-            expect(single).toHaveProperty('surname')
-            expect(typeof single.surname).toBe('string')
-    
-            expect(single).toHaveProperty('email')
-            expect(typeof single.email).toBe('string')
-    
-            expect(single).toHaveProperty('id')
-            expect(typeof single.id).toBe('string')
-    
-            expect(single).toHaveProperty('date')
-            expect(typeof single.date).toBe('string')
-        })    
+describe('Użytkownik chce utworzyć z nich grupe kontaktów "rodzina"', () => {
+    test('Przez klase AddressBook dodaję grupę rodzina', () => {
+        book.addGroup(group)
+        expect(book.listOfContactGroup).toHaveLength(1);
     })
-    
-    describe('Klasa ContactGroup', () => {
-        const grupa = new ContactGroup('Janusze');
-        const contact = new SingleContact({name: 'Tomek', surname: 'Nowak', email: 'tomek.nowak@gmail.com'})
-        
-        test('Dodaje kontakt który jest instacja klasy SingleContact do grupy kontaktów poprzez metode addContact', () => {
-            grupa.addContact(contact)
-            expect(grupa.contacts).toHaveLength(1)
-            expect(grupa.contacts[0]).toBeInstanceOf(SingleContact)
-            expect(grupa.contacts[0]).toBe(contact)
-        })
-    
-        test('Zmienia nazwe grupy za pomocą metody updateGroupName', () => {
-            grupa.updateGroupName('Nowaki');
-            expect(grupa.name).toBe('Nowaki')
-        })
-    
-        test('Usuwa elementy z tablicy contacts za pomocą metody deleteContactById, która przyjmuje id jako argument po którym jest szukany kontakt do usunięcia', () => {
-            grupa.deleteContactById('ss')
-            expect(grupa.contacts).toHaveLength(0);
-        })
-    
-    })    
+
+    test('Przez klase AddressBook dodaje kontakty X, Y, Z do grupy "rodzina" ', () => {
+        book.addContactsToGroup('rodzina', x,y,z);
+        expect(book.listOfContactGroup[0].contacts).toHaveLength(3);
+    })
+})
+
+describe('Użytkownik chce usunąć kontakt X', () => {
+    test('Z książki telefonicznej', () => {
+        book.deleteContactById('contac')
+        expect(book.allContacts).toHaveLength(2)
+    })
+
+    test('Z grupy kontaktów "rodzina" ', () => {
+        group.deleteContactById('contact')
+        expect(group.contacts).toHaveLength(2)
+    })
+})
+
+describe('Użytkownik modyfikuje kontakt Y', () => {
+    test('Z poziomu klasy AddressBook poprzez wyszukanie kontaktu z listy za pomoca ID', () => {
+        book.updateContactById('contac', 'name', 'Julian')
+        expect(y.name).toBe('Julian')
+    })
+    test('Z poziomu klasy SingleContact wywołując metode update na kontakcie', () => {
+        y.update('surname', 'Król')
+        expect(y.surname).toBe('Król')
+    })
+})
+
+describe('Użytkownik chce zmienić nazwe grupy', () => {
+    test('Z nazwy "rodzina" na "królowie"', () => {
+        group.updateGroupName('Królowie')
+        expect(group.name).toBe('Królowie')
+    })
+})
+
 })
 
 describe('Logika aplikacji "nie działa" poprawnie, prezentując odpowiednie komunikaty błędu', () => {
+    const x = new SingleContact({name: 'Tomasz', surname: 'Kowalski', email: 'kowalski.tomasz@wp.pl'})
+    const book = new AddressBook();
+    const group = new ContactGroup('rodzina')
+    book.addGroup(group)
 
-    describe('W przypadku klasy SingleContact', () => {
-
-        test('Gdy użytkownik wprowadził argument innnego typu niż object', () => {
-            const incorrectInputs = ['', '123', Date, Date.now(), 1,]
-            incorrectInputs.forEach(input => {
-                expect(() => {
-                    new SingleContact(input)
-                }).toThrow('Argument must be an object with properties - name, surname, email')
-            })
+    describe('Gdy użytkownik niepoprawnie utworzył', () => {
+        test('Kontakt nie wprowadzając żadnej wartości lub brakuje chociaż jednego klucza', () => {
+            expect(() => {
+                new SingleContact()
+            }).toThrow('Data is missing one of the properties: name, surname, email')
         })
-    
-        test('Gdy użytkownik wprowadził argument typu "object" w którym brakuje któregoś z kluczy lub wprowadzono pusty object', () => {
-            const incorrectInputs = [{}, , {name: 'asd', surname: 'ssss'}, []]
-            incorrectInputs.forEach(input => {
-                expect(() => {
-                    new SingleContact(input)
-                }).toThrow('Data is missing one of the properties: name, surname, email')
-            })
+        test('Grupe kontaktów, wprowadzając nazwe, której długość jest mniejsza niż 2 lub jest pustym ciagiem', () => {
+            expect(() => {
+                new ContactGroup()
+            }).toThrow('Group name must be a string with length higher then 2')
         })
     })
-    
+
+    describe('Gdy użytkownik próbuje dodać kilka tych samych kontaktów', () => {
+        test('Do ksiązki adresowje', () => {
+            expect(() => {
+                book.addContacts(x, x)
+            }).toThrow('You cant add two the same numbers')
+            
+            expect(() => {
+                book.addContact(x)
+                book.addContact(x)
+            }).toThrow('This contact is already in list')
+        })
+        test('Do grupy kontaktów', () => {
+            expect(() => {
+                book.addContactsToGroup('rodzina', x,x)
+            }).toThrow('You cant add two the same numbers')
+
+            expect(() => {
+                book.addContactToGroup('rodzina', x)
+                book.addContactToGroup('rodzina', x)
+            }).toThrow('This contact is already in group')
+        })
+    })
+
+    describe('Gdy użytkownik chce zmienić wartość w kontakcie lecz', () => {
+        test('Wprowadził nieistniejący klucz', () => {
+            expect(() => {
+                book.updateContactById('contac', 'asd', 'Maciej')
+            }).toThrow('Invalid Key, there is no key like that')
+        })
+        test('Wprowadził wartość nieodpowiedniego typu', () => {
+            expect(() => {
+                book.updateContactById('contac', 'name', 123)
+            }).toThrow('invalid value, right value is not empty string')
+        })
+    })
 })
